@@ -14,9 +14,10 @@ data_provider = ExternalDataProvider()
 
 @app.route('/search', methods=['POST', 'GET'])
 def search():
+    print('search')
     page = int(request.args.get('page', 1))
     per_page = int(request.args.get('pageSize', 10))
-    people = []
+
     if request.method == 'POST':
         query = request.form.get('query', '')
     else:
@@ -25,24 +26,27 @@ def search():
     if not query:  # empty query
         return jsonify({})
 
+    result = {}
     if query.startswith('#'):  # search by hashtag
+        print('hashtag')
         query = query.lstrip('#')
-        tweets = data_provider.get_tweets_by_hashtag(query, page, per_page)
+        result = data_provider.get_tweets_by_hashtag(query, page, per_page)
     elif query.startswith('@'):  # search by user
+        print('user')
         query = query.lstrip('@')
-        tweets = data_provider.get_tweets_by_user(query, page, per_page)
+        result = data_provider.get_tweets_by_user(query, page, per_page)
     else:  # search by text
-        tweets = data_provider.get_tweets_by_text(query, page, per_page)
-
-    return jsonify(people=people, tweets=tweets)
+        print('text')
+        result = data_provider.get_tweets_by_text(query, page, per_page)
+    return jsonify(result)
 
 
 @app.route('/search_user_tweets', methods=['GET'])
 def search_user_tweets():
     username = request.args.get('username')
     if username:
-        tweets = data_provider.get_tweets_by_user(username)  # 假设这个方法按用户名获取推文
-        return jsonify(tweets=tweets)
+        result = data_provider.get_tweets_by_user(username)  # 假设这个方法按用户名获取推文
+        return jsonify(result)
     return jsonify({'error': 'Username not provided'}), 400
 
 

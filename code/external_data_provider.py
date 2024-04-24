@@ -1,7 +1,8 @@
 from pymongo import MongoClient
 from bson import json_util
 import json
-import TimedSearch
+from TimedSearch import perform_search
+
 
 class ExternalDataProvider:
     def __init__(self):
@@ -17,21 +18,27 @@ class ExternalDataProvider:
         :param query: username or screen name
         :return: list of dict, contain 'name', 'screenName', 'description', 'link'
         """
+        raw_results = perform_search('user', query, page, per_page)
 
-        start = (page - 1) * per_page
-        results = self.tweets_collection.aggregate([
-            {'$match': {'user.screen_name': query}},
-            {'$skip': start},
-            {'$limit': per_page},
-            {'$project': {
-                'tweet_id': {'$toString': '$tweet_id'},
-                'text': 1,
-                'user': 1,
-                'created_at': 1
-            }}
-        ])
+        people = []
+        all_tweets = []
+        for user in raw_results:
+            user_dict = {
+                'name': user.get('name'),
+                'screenName': user.get('screen_name'),
+                'followers': user.get('followers_count', '')
+            }
+            people.append(user_dict)
 
-        return json.loads(json_util.dumps(list(results)))
+            tweets = user.get('tweets')
+            for tweet in tweets:
+                tweet['tweet_id'] = str(tweet.get('tweet_id'))
+            all_tweets.extend(tweets)
+        result = {
+            'people': people,
+            'tweets': all_tweets
+        }
+        return json.loads(json_util.dumps(result))
 
     def get_tweets_by_text(self, query, page=1, per_page=10):
         """
@@ -41,19 +48,16 @@ class ExternalDataProvider:
         :return: list of dict, contains 'name', 'screenName', 'content', 'timestamp'
         """
 
-        start = (page - 1) * per_page
-        results = self.tweets_collection.aggregate([
-            {'$match': {"$text": {"$search": query}}},
-            {'$skip': start},
-            {'$limit': per_page},
-            {'$project': {
-                'tweet_id': {'$toString': '$tweet_id'},
-                'text': 1,
-                'user': 1,
-                'created_at': 1
-            }}
-        ])
-        return json.loads(json_util.dumps(list(results)))
+        people = []
+        raw_results = perform_search('text', query, page, per_page)
+        for result in raw_results:
+            result['tweet_id'] = str(result.get('tweet_id'))
+        result = {
+            'people': people,
+            'tweets': raw_results
+        }
+
+        return json.loads(json_util.dumps(result))
 
     def get_tweets_by_hashtag(self, query, page=1, per_page=10):
         """
@@ -64,20 +68,15 @@ class ExternalDataProvider:
         :return: list of dict
         """
 
-        start = (page - 1) * per_page
-        results = self.tweets_collection.aggregate([
-            {'$match': {"hashtags": query}},
-            {'$skip': start},
-            {'$limit': per_page},
-            {'$project': {
-                'tweet_id': {'$toString': '$tweet_id'},
-                'text': 1,
-                'user': 1,
-                'created_at': 1
-            }}
-        ])
-
-        return json.loads(json_util.dumps(list(results)))
+        people = []
+        raw_results = perform_search('hashtag', query, page, per_page)
+        for result in raw_results:
+            result['tweet_id'] = str(result.get('tweet_id'))
+        result = {
+            'people': people,
+            'tweets': raw_results
+        }
+        return json.loads(json_util.dumps(result))
 
 
 data_provider = ExternalDataProvider()

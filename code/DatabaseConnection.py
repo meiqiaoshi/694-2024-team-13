@@ -26,7 +26,7 @@ def mysql_query(query, params):
     return result
 
 def mongo_query(query, sort_field=None, limit=None, page=None):
-    client = MongoClient("mongodb+srv://ss4767:JadonSancho%407@cluster0.r6mgzuu.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
+    client = MongoClient("mongodb://localhost:27017")
     db = client['dbms_project']
     collection = db['tweets']
     results = collection.find(query)
@@ -41,7 +41,7 @@ def mongo_query(query, sort_field=None, limit=None, page=None):
     return final_results
 
 def mongo_aggregate(pipeline):
-    client = MongoClient("mongodb+srv://ss4767:JadonSancho%407@cluster0.r6mgzuu.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
+    client = MongoClient("mongodb://localhost:27017")
     db = client['dbms_project']
     collection = db['tweets']
     try:

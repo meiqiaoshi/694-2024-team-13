@@ -11,7 +11,12 @@ document.getElementById('search-btn').addEventListener('click', function() {
         },
         body: 'query=' + encodeURIComponent(query)
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response.json();
+    })
     .then(data => {
         if (Object.keys(data).length > 0) {
             displayResults(data, true);
@@ -30,21 +35,23 @@ function displayResults(data, clearContents) {
         peopleContainer.innerHTML = '';
         tweetsContainer.innerHTML = '';
     }
-    // dumped method
+
+    console.log('people')
     if (data.people) {
         // For each person, create a new div element and add it to peopleContainer
         data.people.forEach(function(person) {
+            console.log(person)
             let personDiv = document.createElement('div');
             personDiv.className = 'person';
             personDiv.innerHTML = `
-                <a href="${person.link}" target="_blank" style="text-decoration: none; color: inherit;">
-                    <h4>${person.name}</h4>
-                    <p>${person.description}</p>
-                </a>`;
+                <h4>${person.name} (@${person.screenName})</h4>
+                <p>${person.followers}</p>`;
+
             peopleContainer.appendChild(personDiv);
         });
     }
 
+    console.log('tweet')
     if (data.tweets) {
         // Create a new div element for each tweet and add it to tweetsContainer
         data.tweets.forEach(function(tweet) {
@@ -96,12 +103,12 @@ function displayResults(data, clearContents) {
             tweetDiv.appendChild(tweetContent);
             tweetsContainer.appendChild(tweetDiv);
         });
-        // Setup click listeners after elements are added
-//        setupUserNameClick();
     }
+    console.log('done')
 }
 
 function fetchUserTweets(username) {
+    console.log('fetch')
     currentPage = 1
     fetch(`/search_user_tweets?username=${encodeURIComponent(username)}`)
         .then(response => response.json())
