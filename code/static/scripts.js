@@ -47,15 +47,22 @@ function displayResults(data, clearContents) {
     }
 
     if (data.tweets) {
-        // For each tweet, create a new div element and add it to tweetsContainer
+        // Create a new div element for each tweet and add it to tweetsContainer
         data.tweets.forEach(function(tweet) {
             let tweetDiv = document.createElement('div');
             tweetDiv.className = 'tweet';
+            // Format the date and time
+            let tweetDate = new Date(tweet.created_at.$date);
+            let formattedDate = tweetDate.toLocaleString();
+
+            // Construct the tweet link, assuming the tweet can be accessed through a standard URL format
+            let tweetLink = `https://twitter.com/${tweet.user.screen_name}/status/${tweet.tweet_id.toString()}`;
+
             tweetDiv.innerHTML = `
-                <a href="${tweet.link}" target="_blank" style="text-decoration: none; color: inherit;">
-                    <h4>${tweet.user}</h4>
-                    <p>${tweet.content}</p>
-                    <span>${tweet.timestamp}</span>
+                <a href="${tweetLink}" target="_blank" style="text-decoration: none; color: inherit;">
+                    <h4>${tweet.user.name} (@${tweet.user.screen_name})</h4>
+                    <p>${tweet.text}</p>
+                    <span>${formattedDate}</span>
                 </a>`;
             tweetsContainer.appendChild(tweetDiv);
         });
@@ -87,8 +94,3 @@ function loadMoreTweets(page) {
         console.error('Error loading more tweets:', error);
     });
 }
-
-
-
-// The displayResults function remains unchanged
-// ...

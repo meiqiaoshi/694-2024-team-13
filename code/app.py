@@ -17,7 +17,6 @@ def search():
     page = int(request.args.get('page', 1))
     per_page = int(request.args.get('pageSize', 10))
     people = []
-
     if request.method == 'POST':
         query = request.form.get('query', '')
     else:
@@ -29,8 +28,10 @@ def search():
     if query.startswith('#'):  # search by hashtag
         query = query.lstrip('#')
         tweets = data_provider.get_tweets_by_hashtag(query, page, per_page)
-    else:  # free search, show both people and tweets
-        people = data_provider.get_user(query)  # 保证POST请求也可以获取people数据
+    elif query.startswith('@'):  # search by user
+        query = query.lstrip('@')
+        tweets = data_provider.get_tweets_by_user(query, page, per_page)
+    else:  # search by text
         tweets = data_provider.get_tweets_by_text(query, page, per_page)
 
     return jsonify(people=people, tweets=tweets)
