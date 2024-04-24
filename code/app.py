@@ -37,5 +37,14 @@ def search():
     return jsonify(people=people, tweets=tweets)
 
 
+@app.route('/search_user_tweets', methods=['GET'])
+def search_user_tweets():
+    username = request.args.get('username')
+    if username:
+        tweets = data_provider.get_tweets_by_user(username)  # 假设这个方法按用户名获取推文
+        return jsonify(tweets=tweets)
+    return jsonify({'error': 'Username not provided'}), 400
+
+
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
